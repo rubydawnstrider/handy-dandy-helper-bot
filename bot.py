@@ -57,6 +57,7 @@ async def repeat_channel(ctx):
 
 @bot.command()
 async def boop(ctx):
+    print('BOOP')
     await bot.send(f'**BOOP, {ctx.message.author.mention()}!**')
 
     
@@ -74,14 +75,14 @@ async def on_ready():
             collection.insert_one(server)
 
 
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    print(f'msg:~{message.content} | {message.type}~')
-    new_msg = 'repeat: ' + message.content
-    await message.channel.send(new_msg)
+##@bot.event
+##async def on_message(message):
+##    if message.author == bot.user:
+##        return
+##
+##    print(f'msg:~{message.content} | {message.type}~')
+##    new_msg = 'repeat: ' + message.content
+##    await message.channel.send(new_msg)
 
 token = os.environ['DISCORD_TOKEN'] #os.getenv('TOKEN')
 bot.run(token)
