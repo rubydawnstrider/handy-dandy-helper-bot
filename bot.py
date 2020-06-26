@@ -8,16 +8,14 @@ from pymongo import MongoClient
 #from dotenv import load_dotenv
 #load_dotenv()
 
-url_conn = os.environ['MONGO_CONN']
+url_conn = os.environ['MONGO_CONN'] #os.getenv('CONN')
 cluster = MongoClient(url_conn)
 db = cluster['handy-dandy-helper-mofo']
 collection = db['config-data']
 
-client = discord.Client()
-
 bot = commands.Bot(command_prefix='!')
 
-@bot.command
+@bot.command()
 async def set_repeat_channel(ctx, arg):
     if ctx.guild is None:
         await ctx.channel.send('this is only designed to run on a server')
@@ -41,7 +39,7 @@ async def set_repeat_channel(ctx, arg):
     await ctx.channel.send(f'repeat channel saved as {arg}')
     
 
-@bot.command
+@bot.command()
 async def repeat_channel(ctx):
     if ctx.guild is None:
         await ctx.channel.send('this is only designed to run on a server')
@@ -57,12 +55,17 @@ async def repeat_channel(ctx):
     await ctx.channel.send(f'repeat channel is currently {channel}')
 
 
-@client.event
+@bot.command()
+async def boop(ctx):
+    await bot.send(f'**BOOP, {ctx.message.author.mention()}!**')
+
+    
+@bot.event
 async def on_ready():
     print(f'mongo connection to \'{url_conn}\'')
-    print(f'{client.user} has connected to Discord!')
+    print(f'{bot.user} has connected to Discord!')
 
-    for guild in client.guilds:
+    for guild in bot.guilds:
         print(f'running on server: {guild.name} {guild.id}')
         # if we didnt add a setting for the server yet, add it
         if (collection.count_documents({'_id': str(guild.id) }) == 0):
@@ -71,14 +74,14 @@ async def on_ready():
             collection.insert_one(server)
 
 
-@client.event
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == bot.user:
         return
 
-    message.author = client.user
-    print(f'msg:~{message.content}~')
+    print(f'msg:~{message.content} | {message.type}~')
     new_msg = 'repeat: ' + message.content
     await message.channel.send(new_msg)
 
-client.run(os.environ['DISCORD_TOKEN'])
+token = os.environ['DISCORD_TOKEN'] #os.getenv('TOKEN')
+bot.run(token)
