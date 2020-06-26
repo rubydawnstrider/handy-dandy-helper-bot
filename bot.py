@@ -5,17 +5,43 @@ from discord.ext import commands
 import pymongo
 from pymongo import MongoClient
 
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
-url_conn = os.getenv('CONN')#os.environ['MONGO_CONN'] #
+url_conn = os.environ['MONGO_CONN'] #os.getenv('CONN')#
 cluster = MongoClient(url_conn)
 db = cluster['handy-dandy-helper-mofo']
 collection = db['config-data']
 
 bot = commands.Bot(command_prefix='!')
 
+@bot.command(pass_context=True)
+async def settings(ctx):
+    query = {'_id':str(ctx.guild.id)}
+    data = collection.find_one(query)
+    if data is not None:
+        chQuery = {'_id':str(ctx.guild.id),'repeat_channel':{'$exists':True,'$ne':None}}
+        ch = collection.find_one(chQuery)
+        channel = None
+        if ch is not None:
+            channel = ctx.guild.get_channel(ch)
+        roleQuery = {'_id':str(ctx.guild.id),'repeat_role':{'$exists':True,'$ne':None}}
+        r = collection.find_one(roleQuery)
+        role = None
+        if r is not None:
+            role = ctx.guild.get_role(role)
 
+        printOut = 'HandyDandyHelperMofo settings\n  repeat channel: '
+        if channel is not None:
+            printOut = printOut + channel.mention
+        printOut = printOut + '\n  repeat role: '
+        if role is not None:
+            printOut = printOut + role.mention
+
+        print(printOut)
+        await ctx.channel.send(printOut)
+
+            
 @bot.command(pass_context=True)
 async def set_repeat_ch(ctx, arg:discord.TextChannel):
     if ctx.guild is None:
@@ -65,6 +91,8 @@ async def repeat_ch(ctx):
 
 @bot.command(pass_context=True)
 async def repeat_role(ctx):
+    print(f'get repeat role for server:{ctx.guild.id}')
+    
     if ctx.guild is None:
         await ctx.channel.send('this is only designed to run on a server')
         return
@@ -139,7 +167,7 @@ async def on_message(ctx):
 ##    new_msg = 'repeat: ' + message.content
 ##    await message.channel.send(new_msg)
 
-token = os.getenv('TOKEN') #os.environ['DISCORD_TOKEN'] #
+token = os.environ['DISCORD_TOKEN'] #os.getenv('TOKEN') #
 bot.run(token)
 
 
