@@ -5,10 +5,10 @@ from discord.ext import commands
 import pymongo
 from pymongo import MongoClient
 
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
-url_conn = os.getenv('CONN')#os.environ['MONGO_CONN'] #
+url_conn = os.environ['MONGO_CONN'] #os.getenv('CONN') #
 cluster = MongoClient(url_conn)
 db = cluster['handy-dandy-helper-mofo']
 collection = db['config-data']
@@ -139,7 +139,7 @@ async def on_message(ctx):
 ##    new_msg = 'repeat: ' + message.content
 ##    await message.channel.send(new_msg)
 
-token = os.getenv('TOKEN') #os.environ['DISCORD_TOKEN'] #
+token = os.environ['DISCORD_TOKEN'] #os.getenv('TOKEN') #
 bot.run(token)
 
 
