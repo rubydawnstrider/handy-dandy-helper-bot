@@ -36,7 +36,7 @@ async def set_repeat_channel(ctx, arg):
         return
         
     #server should have been added in setup so we'll assume its available to update
-    collection.update_one({'_id': ctx.guild.id}, {$set:{'repeat_channel': arg}})
+    collection.update_one({'_id': ctx.guild.id}, {'$set':{'repeat_channel': arg}})
     await ctx.channel.send(f'repeat channel saved as {arg}')
     break
 
