@@ -28,7 +28,7 @@ async def set_repeat_channel(ctx, arg):
     channel_id = None
     for channel in ctx.guild.channels:
         if channel.name == arg:
-            channel_id = channel.id
+            channel_id = str(channel.id)
             break
 
     if channel_id is None:
@@ -36,7 +36,7 @@ async def set_repeat_channel(ctx, arg):
         return
         
     #server should have been added in setup so we'll assume its available to update
-    collection.update_one({'_id': ctx.guild.id}, {'$set':{'repeat_channel': arg}})
+    collection.update_one({'_id': str(ctx.guild.id)}, {'$set':{'repeat_channel': channel_id}})
     await ctx.channel.send(f'repeat channel saved as {arg}')
     
 
@@ -46,7 +46,7 @@ async def repeat_channel(ctx):
         await ctx.channel.send('this is only designed to run on a server')
         return
     
-    query = {'_id': ctx.guild.id}
+    query = {'_id': str(ctx.guild.id)}
     guild = collection.find_one(query)
     if quild is None:
         await ctx.channel.send('no repeat channel is saved')
@@ -63,9 +63,10 @@ async def on_ready():
     for guild in client.guilds:
         print(f'running on server: {guild.name} {guild.id}')
         # if we didnt add a setting for the server yet, add it
-        if (collection.count_documents({'_id': guild.id }) == 0):
-            post = {'_id': guild.id, 'guild_name': guild.name}
-            collection.insert_one(post)
+        if (collection.count_documents({'_id': str(guild.id) }) == 0):
+            print(f'adding server: {guild.name} {guild.id} to the DB . . .')
+            server = {'_id': str(guild.id), 'guild_name': guild.name}
+            collection.insert_one(server)
 
 
 @client.event
