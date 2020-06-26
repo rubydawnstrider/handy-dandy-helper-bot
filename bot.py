@@ -52,7 +52,8 @@ async def repeat_channel(ctx):
         await ctx.channel.send('no repeat channel is saved')
         return
 
-    await ctx.channel.send(f'repeat channel is currently {guild.repeat_channel]}')
+    channel = guild['repeat_channel']
+    await ctx.channel.send(f'repeat channel is currently {channel}')
 
 
 @client.event
