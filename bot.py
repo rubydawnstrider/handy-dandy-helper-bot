@@ -58,7 +58,7 @@ async def repeat_channel(ctx):
 @bot.command()
 async def boop(ctx):
     print('BOOP')
-    await bot.send(f'**BOOP, {ctx.message.author.mention()}!**')
+    await ctx.channel.send(f'**BOOP, {ctx.message.author.mention()}!**')
 
     
 @bot.event
