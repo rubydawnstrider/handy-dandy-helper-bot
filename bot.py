@@ -9,20 +9,63 @@ from pymongo import MongoClient
 #load_dotenv()
 
 cluster = MongoClient(os.environ['MONGO_CONN'])
-
 db = cluster['handy-dandy-helper-mofo']
 collection = db['config-data']
 
 client = discord.Client()
+
+bot = commands.Bot(command_prefix='!')
+
+@bot.command
+async def set_repeat_channel(ctx, arg):
+    if ctx.guild is None:
+        await ctx.channel.send('this is only designed to run on a server')
+        return
+    if arg is None or arg == '':
+        await ctx.channel.send('huh? you need to provide a channel name')
+        return
+
+    channel_id = None
+    for channel in ctx.guild.channels:
+        if channel.name == arg:
+            channel_id = channel.id
+            break
+
+    if channel_id is None:
+        await ctx.channel.send('you need to provide a valid channel name')
+        return
+        
+    #server should have been added in setup so we'll assume its available to update
+    collection.update_one({'_id': ctx.guild.id}, {$set:{'repeat_channel': arg}})
+    await ctx.channel.send(f'repeat channel saved as {arg}')
+    break
+
+@bot.command
+async def repeat_channel(ctx):
+    if ctx.guild is None:
+        await ctx.channel.send('this is only designed to run on a server')
+        return
+    
+    query = {'_id': ctx.guild.id}
+    guild = collection.find_one(query)
+    if quild is None:
+        await ctx.channel.send('no repeat channel is saved')
+        return
+
+    await ctx.channel.send(f'repeat channel is currently {guild.repeat_channel]}')
+
 
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
 
     for guild in client.guilds:
-        print(f'server: {guild.name} {guild.id}')
-        post = {"_id": guild.id, "guild_name": guild.name}
-        collection.insert_one(post)
+        print(f'running on server: {guild.name} {guild.id}')
+        # if we didnt add a setting for the server yet, add it
+        if (collection.count_documents({'_id': guild.id }) == 0):
+            post = {'_id': guild.id, 'guild_name': guild.name}
+            collection.insert_one(post)
+
 
 @client.event
 async def on_message(message):
