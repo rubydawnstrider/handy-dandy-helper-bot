@@ -1,12 +1,10 @@
 # bot.py
+import discord
 import os
 
-import discord
+#from dotenv import load_dotenv
+#load_dotenv()
 
-from dotenv import load_dotenv
-
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
 
 client = discord.Client()
 
@@ -27,4 +25,4 @@ async def on_message(message):
     new_msg = 'repeat: ' + message.content
     await message.channel.send(new_msg)
 
-client.run(TOKEN)
+client.run(os.environ('DISCORD_TOKEN'))
