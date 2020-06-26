@@ -8,7 +8,8 @@ from pymongo import MongoClient
 #from dotenv import load_dotenv
 #load_dotenv()
 
-cluster = MongoClient(os.environ['MONGO_CONN'])
+url_conn = os.environ['MONGO_CONN']
+cluster = MongoClient(url_conn)
 db = cluster['handy-dandy-helper-mofo']
 collection = db['config-data']
 
@@ -58,6 +59,7 @@ async def repeat_channel(ctx):
 
 @client.event
 async def on_ready():
+    print(f'mongo connection to \'{url_conn}\'')
     print(f'{client.user} has connected to Discord!')
 
     for guild in client.guilds:
