@@ -25,4 +25,4 @@ async def on_message(message):
     new_msg = 'repeat: ' + message.content
     await message.channel.send(new_msg)
 
-client.run(os.environ('DISCORD_TOKEN'))
+client.run(os.environ['DISCORD_TOKEN'])
