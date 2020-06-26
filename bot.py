@@ -68,7 +68,7 @@ async def on_ready():
     for guild in bot.guilds:
         print(f'running on server: {guild.name} {guild.id}')
         # if we didnt add a setting for the server yet, add it
-        if (collection.count_documents({'_id': str(guild.id) }) == 0):
+        if collection.count_documents({'_id': str(guild.id) }) == 0:
             print(f'adding server: {guild.name} {guild.id} to the DB . . .')
             server = {'_id': str(guild.id), 'guild_name': guild.name}
             collection.insert_one(server)
