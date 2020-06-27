@@ -197,7 +197,8 @@ async def boop(ctx, *args):
     elif len(args) == 1 and type(args[0]) is discord.Member:
         await ctx.channel.send(f'**BOOP, {args[0].mention}!**')
     else:
-        await ctx.channel.send(f'**BOOP, {' '.join(args)}!**')
+        msg = ' '.join(args)
+        await ctx.channel.send(f'**BOOP, {msg}!**')
 
     
 ##################################################################################################
