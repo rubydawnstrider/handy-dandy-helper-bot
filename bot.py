@@ -191,7 +191,7 @@ async def join_notif(ctx):
 ##  fun method to boop yourself or another member
 ##
 @bot.command(pass_context=True)
-async def boop(ctx, args*):
+async def boop(ctx, *args):
     if len(args) == 0:
         await ctx.channel.send(f'**BOOP, {ctx.message.author.mention}!**')
     elif len(args) == 1 and type(args[0]) is discord.Member:
