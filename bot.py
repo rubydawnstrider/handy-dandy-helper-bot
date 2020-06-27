@@ -248,7 +248,7 @@ async def on_member_join(ctx):
     if repeatChannel is not None:
         if repeatRole is not None:
             join_notif = None
-            if 'join_notif' is in bot_set:
+            if 'join_notif' in bot_set:
                 join_notif = bot_set['join_notif']
 
             if join_notif is None:
