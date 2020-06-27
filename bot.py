@@ -2,8 +2,6 @@
 import discord
 import os
 from discord.ext import commands
-#import pymongo
-#from pymongo import MongoClient
 import json
 
 #from dotenv import load_dotenv
@@ -12,13 +10,15 @@ import json
 bot_settings = {}
 
 json_path = 'bot_data.json'
-#url_conn = os.getenv('CONN')#os.environ['MONGO_CONN'] #
-#cluster = MongoClient(url_conn)
-#db = cluster['handy-dandy-helper-mofo']
-#collection = db['config-data']
 
 bot = commands.Bot(command_prefix='!')
+default_join_notif = 'Yo, [ROLE]. Newb alert: [NEWBIE] joined!\nBetter make sure they get the right nickname and role set up'
 
+##################################################################################################
+##################################################################################################
+## settings
+##  displays the current settings for the bot
+##
 @bot.command(pass_context=True)
 async def settings(ctx):
     bot_set = bot_settings[str(ctx.guild.id)]
@@ -28,33 +28,46 @@ async def settings(ctx):
     printOut = printOut + '\n  repeat role: '
     if bot_set['repeat_role'] is not None:
         printOut = printOut + bot_set['repeat_role']
+    printOut = printOut + '\n  notification message: '
+    if bot_set['join_notif'] is not None:
+        printOut = printOut + bot_set['join_notif']
+    else:
+        printOut = printOut + default_join_notif
+        
     await ctx.channel.send(printOut)
-    
-##    query = {'_id':str(ctx.guild.id)}
-##    data = collection.find_one(query)
-##    if data is not None:
-##        chQuery = {'_id':str(ctx.guild.id),'repeat_channel':{'$exists':True,'$ne':None}}
-##        ch = collection.find_one(chQuery)
-##        channel = None
-##        if ch is not None:
-##            channel = ctx.guild.get_channel(ch)
-##        roleQuery = {'_id':str(ctx.guild.id),'repeat_role':{'$exists':True,'$ne':None}}
-##        r = collection.find_one(roleQuery)
-##        role = None
-##        if r is not None:
-##            role = ctx.guild.get_role(role)
-##
-##        printOut = 'HandyDandyHelperMofo settings\n  repeat channel: '
-##        if channel is not None:
-##            printOut = printOut + channel.mention
-##        printOut = printOut + '\n  repeat role: '
-##        if role is not None:
-##            printOut = printOut + role.mention
-##
-##        print(printOut)
-##        await ctx.channel.send(printOut)
 
-            
+
+##################################################################################################
+##################################################################################################
+## set_join_notif
+##  sets the message to display when a new member joins.
+##  assumes [ROLE] will be replaced with the role to @ and [NEWBIE] will be the new member
+##  if nothing, '?' or '-help' are passed, will display a help text on the command cuz this one is trickier
+##
+@bot.command(pass_context=True)
+async def set_join_notif(ctx, *, arg):
+    if arg is None or arg == '?' or arg.lower() == '-help':
+        await ctx.channel.send(' **!set_notif_join arg**:\npass the message you want to display on the !repeat_channel channel when a new member joins the server.\nTo have the message mention the !repeat_role role, put the string _[ROLE]_ in the message.\nLikewise use _[NEWBIE]_ for the new member.')
+        return
+
+    #server should have been added in setup so we'll assume its available to update
+    global bot_settings
+    guild = bot_settings[str(ctx.guild.id)]
+    if arg != guild['join_notif']:
+        guild['join_notif'] = arg
+        with open(json_path,'w') as json_file:
+            json.dump(bot_settings, json_file)
+
+    await ctx.channel.send(f'notification messages saved as {arg}')
+
+ 
+
+
+##################################################################################################
+##################################################################################################
+## set_repeat_ch
+##  sets the channel to post in when a new member joins. bot must has write access to the channel
+##
 @bot.command(pass_context=True)
 async def set_repeat_ch(ctx, arg:discord.TextChannel):
     if ctx.guild is None:
@@ -65,7 +78,6 @@ async def set_repeat_ch(ctx, arg:discord.TextChannel):
         return
 
     #server should have been added in setup so we'll assume its available to update
-#    collection.update_one({'_id': str(ctx.guild.id)}, {'$set':{'repeat_channel': arg.id}})
     global bot_settings
     guild = bot_settings[str(ctx.guild.id)]
     if arg.id != guild['repeat_channel']:
@@ -76,6 +88,11 @@ async def set_repeat_ch(ctx, arg:discord.TextChannel):
     await ctx.channel.send(f'repeat channel saved as {arg.mention}')
 
 
+##################################################################################################
+##################################################################################################
+## set_repeat_role
+##  sets the role to @ when a new member joins
+##
 @bot.command(pass_context=True)
 async def set_repeat_role(ctx, arg:discord.Role):
     if ctx.guild is None:
@@ -85,8 +102,6 @@ async def set_repeat_role(ctx, arg:discord.Role):
         await ctx.channel.send('huh? you need to provide a role')
         return
 
-    #server should have been added in setup so we'll assume its available to update
-    #collection.update_one({'_id': str(ctx.guild.id)}, {'$set':{'repeat_role': arg.id}})
     global bot_settings
     guild = bot_settings[str(ctx.guild.id)]
     if arg.id != guild['repeat_role']:
@@ -94,8 +109,14 @@ async def set_repeat_role(ctx, arg:discord.Role):
         with open(json_path,'w') as json_file:
             json.dump(bot_settings, json_file)
     await ctx.channel.send(f'repeat role saved as {arg.mention}')
+
     
 
+##################################################################################################
+##################################################################################################
+## repeat_ch
+##  displays the current channel to post in when a new member joins
+##
 @bot.command(pass_context=True)
 async def repeat_ch(ctx):
     if ctx.guild is None:
@@ -104,8 +125,6 @@ async def repeat_ch(ctx):
 
     global bot_settings
     
-#    query = {'_id': str(ctx.guild.id), 'repeat_channel':{'$exists':True,'$ne':None} }
-#    guild = collection.find_one(query)
     guild = bot_settings[str(ctx.guild.id)]
     if guild is None:
         await ctx.channel.send('no repeat channel is saved')
@@ -118,17 +137,19 @@ async def repeat_ch(ctx):
         await ctx.channel.send(f'repeat channel is not set :open_mouth:')
 
 
+##################################################################################################
+##################################################################################################
+## repeat_role
+##  displays the current role to @ when a new member joins
+##
 @bot.command(pass_context=True)
 async def repeat_role(ctx):
-    print(f'get repeat role for server:{ctx.guild.id}')
     global bot_settings
 
     if ctx.guild is None:
         await ctx.channel.send('this is only designed to run on a server')
         return
     
-#    query = {'_id': str(ctx.guild.id), 'repeat_role':{'$exists':True,'$ne':None} }
-#    guild = collection.find_one(query)
     guild = bot_settings[str(ctx.guild.id)]
     if guild is None:
         await ctx.channel.send('no repeat role is saved')
@@ -141,12 +162,51 @@ async def repeat_role(ctx):
         await ctx.channel.send(f'repeat role is not set :open_mouth:')
 
 
+##################################################################################################
+##################################################################################################
+## join_notif
+##  displays the current join notification message to print when a new member joins
+##
 @bot.command(pass_context=True)
-async def boop(ctx):
-    author = ctx.message.author.mention
-    await ctx.channel.send(f'**BOOP, {author}!**')
+async def join_notif(ctx):
+    global bot_settings
+
+    if ctx.guild is None:
+        await ctx.channel.send('this is only designed to run on a server')
+        return
+    
+    guild = bot_settings[str(ctx.guild.id)]
+
+    notif = guild['join_notif']
+    if notif is None:
+        notif = default_join_notif
+
+    await ctx.channel.send(f'join notification message is currently: {notif}')
+
+
+
+##################################################################################################
+##################################################################################################
+## boop
+##  fun method to boop yourself or another member
+##
+async def boop(ctx, member:discord.Member):
+    if member is None:
+        await ctx.channel.send(f'**BOOP, {ctx.message.author.mention}!**')
+    else:
+        await ctx.channel.send(f'**BOOP, {member.mention}!**')
+
 
     
+##################################################################################################
+##################################################################################################
+## on_ready
+##  bot is ready to run.
+##  initial startup things: 
+##  * load the bot settings from the json file
+##  * if the bot is running on a server with no settings, add a blank repeat option to the settings for it
+##  * save the bot settings if there were changes
+##
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
@@ -164,64 +224,45 @@ async def on_ready():
     for guild in bot.guilds:
         print(f'running on server: {guild.name} {guild.id}')
         if str(guild.id) not in bot_settings:
-            bot_settings[str(guild.id)] = {'guild_name':guild.name, 'repeat_channel':None, 'repeat_role':None}
-        
-##        # if we didnt add a setting for the server yet, add it
-##        query = {'_id': str(guild.id)}
-##        g0 = collection.find_one(query)
-##        if g0 is None:
-##            print(f'adding server: {guild.name} {guild.id} to the DB . . .')
-##            server = {'_id': str(guild.id), 'guild_name': guild.name}
-##            collection.insert_one(server)
-##        else:
-##            print(g0)
+            bot_settings[str(guild.id)] = {'guild_name':guild.name, 'repeat_channel':None, 'repeat_role':None, 'join_notif':None}
             
     if len(bot_settings) > initSize:
         with open(json_path,'w') as json_file:
             json.dump(bot_settings, json_file)
-            
 
+            
+##################################################################################################
+##################################################################################################
+## on_member_join
+##  notify the appropriate channel and role there's a new memeber
+##
 @bot.event
 async def on_member_join(ctx):
     global bot_settings
     bot_set = bot_settings[str(ctx.guild.id)]
     
-#    query = {'_id': str(ctx.guild.id)}
-#    guild = collection.find_one(query)
     defaultChannel = ctx.guild.system_channel
-##    repeatChannel = ctx.guild.get_channel(guild['repeat_channel'])
-##    repeatRole = ctx.guild.get_role(guild['repeat_role'])
     repeatChannel = ctx.guild.get_channel(bot_set['repeat_channel'])
     repeatRole = ctx.guild.get_role(bot_set['repeat_role'])
 
-#    print(f'join: {ctx}')
-#    await defaultChannel.send(f'repeat channel: {repeatChannel.mention}')
-#    await defaultChannel.send(f'repeat role: {repeatRole.mention}')
-
     if repeatChannel is not None:
         if repeatRole is not None:
-            await repeatChannel.send(f'Yo, {repeatRole.mention}. Newb alert: {ctx.mention}! Better make sure they got the right nickname and role')
+            join_notif = None
+            if 'join_notif' is in bot_set:
+                join_notif = bot_set['join_notif']
+
+            if join_notif is None:
+                join_notif = default_join_notif
+
+            join_notif = join_notif.replace('[ROLE]', repeatRole.mention)
+            join_notif = join_notif.replace('[NEWBIE]', ctx.mention)
+            
+            await repeatChannel.send(join_notif)
         else:
             await repeatChannel.send(f'Welcome to the mayhem, {ctx.mention}!')
     else:
         print(f'no repeat settings defined for guild: {ctx.guild.name}#{ctx.guild.id}')
 
-@bot.event
-async def on_message(ctx):
-    if ctx.author == bot.user:
-        return
-
-    #dont process here if this is a command for the bot
-    if ctx.content.startswith(bot.command_prefix):
-        await bot.process_commands(ctx)
-        return
-
-    if ctx.type == discord.MessageType.new_member:
-        return
-    
-    print(f'msg:~{ctx.content} | {ctx.type}~')
-##    new_msg = 'repeat: ' + message.content
-##    await message.channel.send(new_msg)
 
 token = os.environ['DISCORD_TOKEN'] #os.getenv('TOKEN') #
 bot.run(token)
