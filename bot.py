@@ -24,10 +24,14 @@ async def settings(ctx):
     bot_set = bot_settings[str(ctx.guild.id)]
     printOut = 'HandyDandyHelperMofo settings\n  repeat channel: '
     if bot_set['repeat_channel'] is not None:
-        printOut = printOut + str(bot_set['repeat_channel'])
+        channel = ctx.guild.get_channel(bot_set['repeat_channel'])
+        if channel is not None:
+            printOut = printOut + channel.mention
     printOut = printOut + '\n  repeat role: '
     if bot_set['repeat_role'] is not None:
-        printOut = printOut + str(bot_set['repeat_role'])
+        role = ctx.guild.get_role(bot_set['repeat_role'])
+        if role is not None:
+            printOut = printOut + role.mention
     printOut = printOut + '\n  notification message: '
     if bot_set['join_notif'] is not None:
         printOut = printOut + bot_set['join_notif']
