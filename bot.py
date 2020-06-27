@@ -47,7 +47,7 @@ async def settings(ctx):
 @bot.command(pass_context=True)
 async def set_join_notif(ctx, *, arg):
     if arg is None or arg == '?' or arg.lower() == '-help':
-        await ctx.channel.send(' **!set_notif_join arg**:\npass the message you want to display on the !repeat_channel channel when a new member joins the server.\nTo have the message mention the !repeat_role role, put the string _[ROLE]_ in the message.\nLikewise use _[NEWBIE]_ for the new member.')
+        await ctx.channel.send(' **!set_notif_join arg**:\npass the message you want to display on the !repeat\_channel channel when a new member joins the server.\nTo have the message mention the !repeat\_role role, put the string _[ROLE]_ in the message.\nLikewise use _[NEWBIE]_ for the new member.')
         return
 
     #server should have been added in setup so we'll assume its available to update
