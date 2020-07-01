@@ -5,8 +5,8 @@ from discord.ext import commands
 import psycopg2
 
 
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 bot_settings = {}
 db_conn = None
