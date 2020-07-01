@@ -170,7 +170,7 @@ def setup_check():
 	for guild in bot.guilds:
 		print(f'running on server: {guild.name} {guild.id}')
 		if guild.id not in bot_settings:
-			bot_settings[guild.id] = bot_setting(guild.id, guild.name, None, guild.system_channel, default_notif_message_format)
+			bot_settings[guild.id] = bot_setting(guild.id, guild.name, None, guild.system_channel.id, default_notif_message_format)
 			insert_bot_config(bot_settings[guild.id])
 
 
@@ -183,14 +183,14 @@ def set_notif_role_help():
 	message = 'mofo_set_notif_role role\n'
 	message = message + '+ This command sets the role to notify when a new member joins the server. '
 	message = message + 'It\'s used to replace the [ROLE] key phrase in the notification message.'
-	message = message + '\n- Pass \'help\' or \'?\' or no argument to the command to show this help text.'
+	message = message + '\n- Pass no argument to the command to show this help text.'
 	return message
 	
 def set_notif_channel_help():
 	message = 'mofo_set_notif_channel channel\n'
 	message = message + '+ This command sets the channel to post in when a new member joins the server. '
 	message = message + 'If no channel is set, the default system notification channel will be used.'
-	message = message + '\n- Pass \'help\' or \'?\' or no argument to the command to show this help text.'
+	message = message + '\n- Pass no argument to the command to show this help text.'
 	return message
 	
 def set_notif_message_help():
@@ -243,32 +243,32 @@ async def print_help(channel:discord.TextChannel, message, premessage = None):
 ## Bot commands
 ##
 @bot.command(pass_context=True)
-async def mofo_set_notif_role(ctx, arg=None):
+async def mofo_set_notif_role(ctx, role:discord.Role=None):
 	global bot_settings
-	if arg is None or (type(arg) != discord.Role and (arg.lower() == 'help' or arg.lower() == '?' or arg.lower() == '-help')):
+	if role is None:
 		await print_help(ctx.channel, set_notif_role_help())
 		return
 	
 	setting = bot_settings[ctx.guild.id]
 	
 	
-	if setting.notif_role_id != arg.id:
-		setting.notif_role_id = arg.id
+	if setting.notif_role_id != role.id:
+		setting.notif_role_id = role.id
 		update_bot_config(setting)
 		
 	await ctx.channel.send(f'Notification role updated')
 	
 @bot.command(pass_context=True)
-async def mofo_set_notif_channel(ctx, arg=None):
+async def mofo_set_notif_channel(ctx, channel:discord.TextChannel=None):
 	global bot_settings
-	if arg is None or (type(arg) != discord.TextChannel and (arg.lower() == 'help' or arg.lower() == '?' or arg.lower() == '-help')):
+	if channel is None:
 		await print_help(ctx.channel, set_notif_channel_help())
 		return
 	
 	setting = bot_settings[ctx.guild.id]
 	
-	if setting.notif_channel_id != arg.id:
-		setting.notif_channel_id = arg.id
+	if setting.notif_channel_id != channel.id:
+		setting.notif_channel_id = channel.id
 		update_bot_config(setting)
 		
 	await ctx.channel.send(f'Notification channel updated')
