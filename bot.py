@@ -3,16 +3,47 @@ import os
 import discord
 from discord.ext import commands
 import psycopg2
-
+import smtplib
+import traceback
 
 #from dotenv import load_dotenv
 #load_dotenv()
 
 bot_settings = {}
 db_conn = None
-
-bot = commands.Bot(command_prefix='!')
 default_notif_message_format = 'Yo, [ROLE]. Newb alert: [NEWBIE] joined!\nBetter make sure they get the right nickname and role set up'
+
+try:
+	global bot
+	bot = commands.Bot(command_prefix='!')
+except Exception as e:
+	send_error_email('Unexpected bot error!', 'There was an error initializing the bot object. Check the logs', traceback.format_exc())
+
+
+def send_error_email(subject, message, e = None):
+	try:
+		email_smtp = os.environ['EMAIL_SMTP']
+		email_user = os.environ['EMAIL_USER']
+		email_pass = os.environ['EMAIL_PASS']
+		email_to_addr = os.environ['EMAIL_TO_ADDR']
+		email_to_addrs = email_to_addr.split(';')
+		email_to = ', '.join(email_to_addrs)
+
+		msg = f'From: {email_user}\r\nTo: {email_to}\r\nSubject: {subject}\r\n\r\n{message}'
+		if e is not None:
+			msg = f'{msg}\r\n\r\nERROR:\r\n{e}'
+
+		server = smtplib.SMTP(email_smtp, 587)
+		server.login(email_user , email_pass)
+		server.sendmail(email_user, email_to_addrs, msg)
+
+		print (f'sent error email: [{msg}]')
+
+	except Exception as e:
+		print(f'ERROR sending email: {traceback.format_exc()}')
+
+	finally:
+		server.quit()
 
 
 class bot_setting:
@@ -31,6 +62,9 @@ class bot_setting:
 
 	def toString(self):
 		return '[ guild_id[{0}],guild_name[{1}],notif_role_id[{2}],notif_channel_id[{3}],notif_message_format[{4}] ]'.format(self.guild_id,self.guild_name,self.notif_role_id,self.notif_channel_id,self.notif_message_format)
+
+
+
 
 ################################################################################
 ## DB methods
@@ -433,13 +467,16 @@ async def on_member_join(ctx):
 async def on_ready():
 	print(f'{bot.user} has connected to Discord!')
 
-	global bot_settings
-
 	setup_check()
+	
+	
+try:
+	token = os.getenv('TOKEN') #os.environ['TOKEN'] #
+	bot.run(token)
+except Exception as e:
+	send_error_email('Unexpected bot error!', 'There was an error running the bot. Check the logs', traceback.format_exc())
 
-
-token = os.getenv('TOKEN') #os.environ['TOKEN'] #
-bot.run(token)
+#bot.run(token)
 
 
 #######################################################
